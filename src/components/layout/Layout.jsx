@@ -2,6 +2,7 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
+import { PWAInstallBanner } from '../ui/PWAInstallBanner'
 
 export function Layout() {
   return (
@@ -13,6 +14,7 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+      <PWAInstallBanner />
     </div>
   )
 }
