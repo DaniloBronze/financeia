@@ -6,13 +6,12 @@ export function Header() {
   const { installPrompt, isInstalled, isOffline, install } = usePWA()
 
   return (
-    <header className="h-16 border-b border-[#2a2a2a] bg-[#1a1a1a] flex justify-between items-center px-6 sticky top-0 z-10 shrink-0">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-          <Wallet className="w-5 h-5 text-white" />
+    <header className="sticky top-0 z-40 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800">
+      <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto md:max-w-none">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">💰</span>
+          <span className="font-semibold text-white">Finanças IA</span>
         </div>
-        <h1 className="text-lg font-semibold text-white">Finanças IA</h1>
-      </div>
 
       <div className="flex items-center gap-4">
         {isOffline && (

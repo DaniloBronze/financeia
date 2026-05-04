@@ -118,18 +118,18 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+        <Card className="col-span-2 md:col-span-1">
           <p className="text-sm text-[#888888] mb-1">Total gasto no mês</p>
           <p className="text-2xl font-semibold">{fmtBRL(total)}</p>
         </Card>
         <Card>
           <p className="text-sm text-[#888888] mb-1">Maior categoria</p>
-          <p className="text-2xl font-semibold">{topCat}</p>
+          <p className="text-xl md:text-2xl font-semibold truncate">{topCat}</p>
         </Card>
         <Card>
           <p className="text-sm text-[#888888] mb-1">Lançamentos</p>
-          <p className="text-2xl font-semibold">{expenses.length}</p>
+          <p className="text-xl md:text-2xl font-semibold">{expenses.length}</p>
         </Card>
       </div>
 
@@ -171,17 +171,18 @@ export default function Dashboard() {
         ) : (
           <div className="relative">
             <textarea
+              rows={3}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ex: gastei 85 reais no mercado hoje..."
-              className="w-full h-32 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg p-4 pr-14 text-white placeholder-[#888888] focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              className="w-full bg-[#1a1a1a] md:bg-zinc-800 border border-[#2a2a2a] md:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none focus:border-indigo-500 transition-colors"
               disabled={loading}
             />
             {isSupported && (
               <button
                 onClick={isListening ? stopListening : startListening}
-                className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${
+                className={`absolute top-3 right-3 p-2 rounded-lg transition-all ${
                   isListening
                     ? 'bg-red-500 text-white animate-pulse'
                     : 'bg-zinc-800 text-zinc-400 hover:text-white'
@@ -190,19 +191,21 @@ export default function Dashboard() {
                 {isListening ? '⏹ Ouvindo...' : '🎙️'}
               </button>
             )}
-            <div className="absolute bottom-4 right-4 flex items-center gap-4">
-              {error && <span className="text-red-400 text-sm">{error}</span>}
-              <Button onClick={handleSubmit} disabled={loading || !text.trim()}>
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Analisando com IA...
-                  </>
-                ) : (
-                  'Analisar e adicionar'
-                )}
-              </Button>
-            </div>
+            {error && <span className="text-red-400 text-sm block mt-2">{error}</span>}
+            <button 
+              onClick={handleSubmit} 
+              disabled={loading || !text.trim()}
+              className="w-full mt-3 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Analisando com IA...
+                </>
+              ) : (
+                '✨ Analisar e adicionar'
+              )}
+            </button>
           </div>
         )}
       </Card>

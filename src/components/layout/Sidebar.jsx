@@ -37,20 +37,22 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#2a2a2a] bg-[#1a1a1a] pb-safe z-50">
-        <div className="flex justify-around items-center h-16">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-zinc-800 pb-safe">
+        <div className="flex items-center justify-around px-2 py-2">
           {links.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
-                  isActive ? 'text-indigo-500' : 'text-[#888888]'
+                `flex flex-col items-center gap-1 px-3 py-2 rounded-xl min-w-[56px] transition-all
+                ${isActive
+                  ? 'text-indigo-400 bg-indigo-500/10'
+                  : 'text-zinc-500'
                 }`
               }
             >
-              <link.icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{link.label}</span>
+              <span className="text-xl"><link.icon className="w-5 h-5" /></span>
+              <span className="text-[10px] font-medium leading-none">{link.label}</span>
             </NavLink>
           ))}
         </div>
