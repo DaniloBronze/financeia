@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 
 export function PWAInstallBanner() {
   const [showIOSGuide, setShowIOSGuide] = useState(false)
+  const [showAndroidManual, setShowAndroidManual] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null) // Android
 
@@ -13,6 +14,7 @@ export function PWAInstallBanner() {
     // Android — captura o evento nativo
     const handler = (e) => {
       e.preventDefault()
+      console.log('✅ beforeinstallprompt capturado')
       setInstallPrompt(e)
     }
     window.addEventListener('beforeinstallprompt', handler)
@@ -23,18 +25,35 @@ export function PWAInstallBanner() {
       setTimeout(() => setShowIOSGuide(true), 2000) // aparece após 2s
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [isIOS, isInStandaloneMode])
+    // Android Fallback — se após 5s não capturou o evento no Android
+    const fallback = setTimeout(() => {
+      const isAndroid = /android/i.test(navigator.userAgent)
+      const isChrome = /chrome/i.test(navigator.userAgent)
+      
+      if (isAndroid && isChrome && !isInStandaloneMode && !wasDismissed && !installPrompt) {
+        setShowAndroidManual(true)
+      }
+    }, 5000)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler)
+      clearTimeout(fallback)
+    }
+  }, [isIOS, isInStandaloneMode, installPrompt])
 
   const handleAndroidInstall = async () => {
     if (!installPrompt) return
     installPrompt.prompt()
     const { outcome } = await installPrompt.userChoice
-    if (outcome === 'accepted') setInstallPrompt(null)
+    if (outcome === 'accepted') {
+      setInstallPrompt(null)
+      setShowAndroidManual(false)
+    }
   }
 
   const handleDismiss = () => {
     setShowIOSGuide(false)
+    setShowAndroidManual(false)
     setInstallPrompt(null)
     setDismissed(true)
     localStorage.setItem('pwa_banner_dismissed', 'true')
@@ -43,11 +62,11 @@ export function PWAInstallBanner() {
   // Já instalado ou dispensado — não mostra nada
   if (isInStandaloneMode || dismissed) return null
 
-  // Android — botão simples
+  // Android — botão nativo simples
   if (installPrompt) {
     return (
       <div className="fixed bottom-20 left-4 right-4 z-50">
-        <div className="bg-indigo-600 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xl">
+        <div className="bg-indigo-600 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xl fade-in">
           <div>
             <p className="text-white font-semibold text-sm">Instalar o app</p>
             <p className="text-indigo-200 text-xs mt-0.5">Acesse mais rápido pela tela inicial</p>
@@ -60,6 +79,39 @@ export function PWAInstallBanner() {
               Instalar
             </button>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Android Manual Fallback
+  if (showAndroidManual) {
+    return (
+      <div className="fixed bottom-20 left-4 right-4 z-50">
+        <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 shadow-2xl fade-in">
+          <p className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
+            <span>📲</span> Instalar o app
+          </p>
+          <div className="flex flex-col gap-3 mb-5">
+            <div className="flex items-center gap-3 text-xs text-zinc-300">
+              <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
+              Toque nos 3 pontos ⋮ no canto superior do Chrome
+            </div>
+            <div className="flex items-center gap-3 text-xs text-zinc-300">
+              <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
+              Toque em <span className="text-white font-medium">"Adicionar à tela inicial"</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-zinc-300">
+              <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</span>
+              Confirme tocando em <span className="text-white font-medium">"Adicionar"</span>
+            </div>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium transition-colors hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
+          >
+            Entendi, instalar
+          </button>
         </div>
       </div>
     )
