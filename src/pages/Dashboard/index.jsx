@@ -119,17 +119,17 @@ export default function Dashboard() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 fade-in">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-        <Card className="col-span-2 md:col-span-1">
-          <p className="text-sm text-[#888888] mb-1">Total gasto no mês</p>
-          <p className="text-2xl font-semibold">{fmtBRL(total)}</p>
+        <Card className="col-span-2 md:col-span-1 p-4">
+          <p className="text-xs text-zinc-400 mb-1">Total gasto no mês</p>
+          <p className="text-3xl font-bold text-white">{fmtBRL(total)}</p>
         </Card>
-        <Card>
-          <p className="text-sm text-[#888888] mb-1">Maior categoria</p>
-          <p className="text-xl md:text-2xl font-semibold truncate">{topCat}</p>
+        <Card className="p-4 min-h-[80px] flex flex-col justify-between">
+          <p className="text-xs text-zinc-400">Maior categoria</p>
+          <p className="text-sm font-semibold text-white mt-1 line-clamp-2">{topCat}</p>
         </Card>
-        <Card>
-          <p className="text-sm text-[#888888] mb-1">Lançamentos</p>
-          <p className="text-xl md:text-2xl font-semibold">{expenses.length}</p>
+        <Card className="p-4 min-h-[80px] flex flex-col justify-between">
+          <p className="text-xs text-zinc-400">Lançamentos</p>
+          <p className="text-3xl font-bold text-white mt-1">{expenses.length}</p>
         </Card>
       </div>
 
@@ -154,10 +154,10 @@ export default function Dashboard() {
       )}
 
       <Card className="border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
-        <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-500" />
-          Registrar com IA
-        </h2>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-indigo-400">✦</span>
+          <h2 className="text-sm font-semibold text-zinc-300">Registrar com IA</h2>
+        </div>
         {suggestedEnvelope ? (
           <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl fade-in">
             <p className="text-indigo-100 mb-4">
@@ -221,32 +221,31 @@ export default function Dashboard() {
             lastExpenses.map(expense => {
               const cat = CATEGORIES[expense.categoria] || CATEGORIES['Outros']
               return (
-                <Card key={expense.id} className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <div 
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
-                      style={{ backgroundColor: `${cat.color}20` }}
-                    >
-                      {cat.icon}
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{expense.descricao}</p>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-[#888888]">
-                        <span>{expense.data}</span>
-                        <Badge color={cat.color}>{expense.categoria}</Badge>
-                      </div>
+                <div key={expense.id} className="flex items-center gap-3 bg-[#1a1a1a] md:bg-zinc-800/60 border border-[#2a2a2a] md:border-zinc-700/50 rounded-2xl p-4 transition-colors">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                       style={{ background: `${cat.color}20`, color: cat.color }}>
+                    {cat.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white capitalize truncate">{expense.descricao}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-zinc-500">{expense.data}</span>
+                      <span className="text-[10px] md:text-xs px-2 py-0.5 rounded-full font-medium"
+                            style={{ background: `${cat.color}20`, color: cat.color }}>
+                        {expense.categoria}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold text-lg">{fmtBRL(expense.valor)}</span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm font-bold text-white">{fmtBRL(expense.valor)}</span>
                     <button 
                       onClick={() => removeExpense(expense.id)}
-                      className="p-2 text-[#888888] hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                </Card>
+                </div>
               )
             })
           )}

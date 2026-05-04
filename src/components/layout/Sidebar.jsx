@@ -4,7 +4,7 @@ import { LayoutDashboard, Receipt, PieChart, Lightbulb, Target, Calendar, Wallet
 export function Sidebar() {
   const links = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/gastos', icon: Receipt, label: 'Meus Gastos' },
+    { to: '/gastos', icon: Receipt, label: 'Gastos' },
     { to: '/recorrentes', icon: Calendar, label: 'Fixos' },
     { to: '/envelopes', icon: WalletCards, label: 'Caixinhas' },
     { to: '/metas', icon: Target, label: 'Metas' },
