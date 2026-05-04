@@ -10,11 +10,31 @@ import { Badge } from '../../components/ui/Badge'
 import { RecurringModal } from '../../components/ui/RecurringModal'
 
 export default function Recurrings() {
-  const { recurrings, addRecurring, removeRecurring, toggleRecurring, markApplied } = useStore()
+  const { recurrings, addRecurring, removeRecurring, toggleRecurring, markApplied, lastApplied } = useStore()
   const { getPendingToday, applyRecurring, getNextDue } = useRecurringAlerts()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const pending = getPendingToday()
+
+  // Total comprometido com fixos ativos este mês
+  const totalFixosMes = recurrings
+    .filter(r => r.active)
+    .reduce((sum, r) => {
+      if (r.frequencia === 'mensal') return sum + r.valor
+      if (r.frequencia === 'quinzenal') return sum + r.valor * 2
+      if (r.frequencia === 'semanal') return sum + r.valor * 4
+      return sum
+    }, 0)
+
+  // Quantos fixos já foram aplicados este mês
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const jaLancados = recurrings.filter(r =>
+    r.active && lastApplied[r.id] === currentMonth
+  )
+  const totalJaLancado = jaLancados.reduce((sum, r) => sum + r.valor, 0)
+
+  // Total ainda pendente
+  const totalPendente = totalFixosMes - totalJaLancado
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 fade-in">
@@ -38,11 +58,52 @@ export default function Recurrings() {
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Gastos Fixos</h1>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus className="w-4 h-4" /> Novo fixo
         </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {/* Total comprometido no mês */}
+        <div className="col-span-2 bg-zinc-800/60 border border-zinc-700/50 rounded-2xl p-4">
+          <p className="text-xs text-zinc-400 mb-1">Comprometido este mês</p>
+          <p className="text-3xl font-bold text-white">{fmtBRL(totalFixosMes)}</p>
+          <p className="text-xs text-zinc-500 mt-1">
+            {recurrings.filter(r => r.active).length} gasto{recurrings.filter(r => r.active).length !== 1 ? 's' : ''} fixo{recurrings.filter(r => r.active).length !== 1 ? 's' : ''} ativo{recurrings.filter(r => r.active).length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        {/* Já lançado */}
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4">
+          <p className="text-xs text-emerald-400 mb-1">Já lançado</p>
+          <p className="text-xl font-bold text-emerald-400">{fmtBRL(totalJaLancado)}</p>
+          <p className="text-xs text-emerald-500/70 mt-1">{jaLancados.length} item{jaLancados.length !== 1 ? 's' : ''}</p>
+        </div>
+
+        {/* Ainda pendente */}
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4">
+          <p className="text-xs text-orange-400 mb-1">Ainda pendente</p>
+          <p className="text-xl font-bold text-orange-400">{fmtBRL(totalPendente)}</p>
+          <p className="text-xs text-orange-500/70 mt-1">
+            {recurrings.filter(r => r.active && lastApplied[r.id] !== currentMonth).length} item{recurrings.filter(r => r.active && lastApplied[r.id] !== currentMonth).length !== 1 ? 's' : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* Barra de progresso geral */}
+      <div>
+        <div className="flex justify-between text-xs text-zinc-400 mb-2">
+          <span>Progresso do mês</span>
+          <span>{totalFixosMes > 0 ? Math.round((totalJaLancado / totalFixosMes) * 100) : 0}% lançado</span>
+        </div>
+        <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+            style={{ width: `${totalFixosMes > 0 ? (totalJaLancado / totalFixosMes) * 100 : 0}%` }}
+          />
+        </div>
       </div>
 
       <div className="space-y-4">
