@@ -8,6 +8,19 @@ const useStore = create(persist(
     recurrings: [],
     envelopes: [],
     lastApplied: {},
+    income: {}, // { 'YYYY-MM': 3750 } — renda por mês
+
+    setIncome: (value) => set(state => {
+      const month = new Date().toISOString().slice(0, 7)
+      return {
+        income: { ...state.income, [month]: value }
+      }
+    }),
+    getCurrentIncome: () => {
+      const month = new Date().toISOString().slice(0, 7)
+      return get().income[month] || 0
+    },
+
     addExpense: (expense) => set(state => ({
       expenses: [{ ...expense, id: Date.now() }, ...state.expenses]
     })),

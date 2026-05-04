@@ -11,16 +11,20 @@ import { Toast } from '../../components/ui/Toast'
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition'
 import { useBudgetAlerts } from '../../hooks/useBudgetAlerts'
 import { useRecurringAlerts } from '../../hooks/useRecurringAlerts'
+import { useBalance } from '../../hooks/useBalance'
+import { IncomeSetup } from '../../components/ui/IncomeSetup'
 
 export default function Dashboard() {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { expenses, addExpense, removeExpense, getTotal, getByCategory, markApplied, envelopes, debitEnvelope } = useStore()
+  const { expenses, addExpense, removeExpense, getByCategory, markApplied, envelopes, debitEnvelope } = useStore()
   const { transcript, isListening, isSupported, startListening, stopListening } = useSpeechRecognition()
   const { requestPermission, checkAlerts } = useBudgetAlerts()
   const { getPendingToday, applyRecurring } = useRecurringAlerts()
+  const { renda, totalGasto, saldoDisponivel, saldoReal, totalFixosPendentes, percentGasto } = useBalance()
+
   const [toastAlerts, setToastAlerts] = useState([])
   const [suggestedEnvelope, setSuggestedEnvelope] = useState(null)
   const [pendingExpense, setPendingExpense] = useState(null)
@@ -33,7 +37,6 @@ export default function Dashboard() {
     if (transcript) setText(transcript)
   }, [transcript])
   
-  const total = getTotal()
   const bycat = getByCategory()
   
   let topCat = '-'
@@ -118,20 +121,83 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 fade-in">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-        <Card className="col-span-2 md:col-span-1 p-4">
-          <p className="text-xs text-zinc-400 mb-1">Total gasto no mês</p>
-          <p className="text-3xl font-bold text-white">{fmtBRL(total)}</p>
-        </Card>
-        <Card className="p-4 min-h-[80px] flex flex-col justify-between">
-          <p className="text-xs text-zinc-400">Maior categoria</p>
-          <p className="text-sm font-semibold text-white mt-1 line-clamp-2">{topCat}</p>
-        </Card>
-        <Card className="p-4 min-h-[80px] flex flex-col justify-between">
-          <p className="text-xs text-zinc-400">Lançamentos</p>
-          <p className="text-3xl font-bold text-white mt-1">{expenses.length}</p>
-        </Card>
-      </div>
+      <IncomeSetup />
+
+      {renda > 0 && (
+        <>
+          {/* Card principal — saldo disponível */}
+          <div className={`rounded-2xl p-6 border shadow-sm ${
+            saldoDisponivel < 0
+              ? 'bg-red-500/10 border-red-500/30'
+              : saldoDisponivel < renda * 0.2
+              ? 'bg-orange-500/10 border-orange-500/30'
+              : 'bg-emerald-500/10 border-emerald-500/20'
+          }`}>
+            <p className="text-xs text-zinc-400 mb-1">Saldo disponível</p>
+            <p className={`text-4xl font-bold ${
+              saldoDisponivel < 0 ? 'text-red-400'
+              : saldoDisponivel < renda * 0.2 ? 'text-orange-400'
+              : 'text-emerald-400'
+            }`}>
+              {fmtBRL(saldoDisponivel)}
+            </p>
+            {totalFixosPendentes > 0 && (
+              <p className="text-xs text-zinc-500 mt-2">
+                Saldo real: {fmtBRL(saldoReal)} (descontando fixos pendentes)
+              </p>
+            )}
+          </div>
+
+          {/* Barra de consumo da renda */}
+          <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-2xl p-5">
+            <div className="flex justify-between text-xs text-zinc-400 mb-3">
+              <span className="font-medium">Consumo da renda</span>
+              <span className="font-semibold">{Math.min(100, Math.round(percentGasto))}%</span>
+            </div>
+            <div className="w-full h-2.5 bg-zinc-700/50 rounded-full overflow-hidden mb-4">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  percentGasto > 100 ? 'bg-red-500'
+                  : percentGasto > 75 ? 'bg-orange-500'
+                  : 'bg-emerald-500'
+                }`}
+                style={{ width: `${Math.min(100, percentGasto)}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="border-r border-zinc-700/50">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Renda</p>
+                <p className="text-sm font-bold text-white">{fmtBRL(renda)}</p>
+              </div>
+              <div className="border-r border-zinc-700/50">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Gasto</p>
+                <p className="text-sm font-bold text-red-400">{fmtBRL(totalGasto)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Fixos pend.</p>
+                <p className="text-sm font-bold text-orange-400">{fmtBRL(totalFixosPendentes)}</p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {!renda && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+          <Card className="col-span-2 md:col-span-1 p-4">
+            <p className="text-xs text-zinc-400 mb-1">Total gasto no mês</p>
+            <p className="text-3xl font-bold text-white">{fmtBRL(totalGasto)}</p>
+          </Card>
+          <Card className="p-4 min-h-[80px] flex flex-col justify-between">
+            <p className="text-xs text-zinc-400">Maior categoria</p>
+            <p className="text-sm font-semibold text-white mt-1 line-clamp-2">{topCat}</p>
+          </Card>
+          <Card className="p-4 min-h-[80px] flex flex-col justify-between">
+            <p className="text-xs text-zinc-400">Lançamentos</p>
+            <p className="text-3xl font-bold text-white mt-1">{expenses.length}</p>
+          </Card>
+        </div>
+      )}
 
       {pending.length > 0 && (
         <div className="flex flex-col gap-2">
